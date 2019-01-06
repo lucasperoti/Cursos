@@ -1,0 +1,73 @@
+Siraj Raval
+
+Video 1 
+
+
+from sklearn import tree
+
+x = [[181,80,44], [177,70,35], [160,60,38], [154,54,37],
+     [166,80,40], [190,90,47], [175,64,39], [177,70,38], [159,67,37],
+     [171,75,42],[181,85,43]]
+     
+y = ['male','female','female','female','male','male','female','female','female','male','male']
+
+clf = tree.DecisionTreeClassifier()
+
+clf = clf.fit(x,y)
+
+prediction = clf.predict([[180,72,41]])
+
+print (prediction)
+
+Video 2
+
+import tweepy
+from textblob import textblob
+
+consumer_key = ''
+consumer_secret = ''
+
+access_token = ''
+access_token_secret = ''
+
+
+auth = tweepy.OAuthHandler(consumer_key,consumer_secret)
+auth.set_acess_token(access_token,access_token_secret)
+
+api = tweepy.API(auth)
+
+public_tweets = api.search('Trump')
+
+for tweet in public_tweets:
+    print(tweet.text)
+    analysis = textblob(tweet.text)
+    print(analysis.sentiment)
+	
+	
+Video 3
+
+import tflearn
+from tflearn.data_utils import to_categorical,pad_sequences
+from tflearn.datasets import imdb
+
+train, test,_ = imdb.load_data(path='imdb.pkl',n_words=10000,
+                               valid_portion = 0.1) 
+
+trainX, trainY = train
+testX, testY = test
+
+trainX = pad_sequences(trainX, maxlen=100, value=0.)
+testX = pad_sequences(testX,maxlen=100,value=0.)
+
+trainY = to_categorical(trainY,nb_classes=2)
+testY = to_categorical(testY,nb_classes=2)
+
+net = tflearn.input_data([None,100])
+net = tflearn.embedding(net,input_dim=10000,outpu_dim=128)
+net = tflearn.lstm(net,128,dropout=0.8)
+net = tflearn.fully_connected(net,2,activation='softmax')
+net = tflearn.regression(net,optimizer='adam',learning_rate=0.001,loss='categorical_crossenteropy')
+
+model = tflearn.DNN(net, tensorboard_verbose=0)
+model.fit(trainX, trainY, validation_set(testX, testY), show_metric=True,batch_size=32)
+		

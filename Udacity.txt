@@ -1,0 +1,296 @@
+PROBLEM SET 1
+
+Exercicio 1
+    predictions = {}
+    df = pandas.read_csv(file_path)
+    for passenger_index, passenger in df.iterrows():
+        
+             if passenger['Sex'] == 'male':
+                 passenger_id = passenger['PassengerId']
+                 predictions[passenger_id] = 0
+             else:
+                passenger_id = passenger['PassengerId']
+                predictions[passenger_id] = 1
+        
+    return predictions
+Exercicio 2
+	predictions = {}
+    df = pandas.read_csv(file_path)
+    for passenger_index, passenger in df.iterrows():
+            passenger_id = passenger['PassengerId']
+            if passenger['Sex'] == 'female' or (passenger['Age'] < 18 and passenger['Pclass'] == 1):
+                predictions[passenger_id] = 1
+            else:
+                predictions[passenger_id] = 0
+    return predictions
+	
+Exercicio 3	
+	predictions = {}
+    df = pandas.read_csv(file_path)
+    for passenger_index, passenger in df.iterrows():
+        passenger_id = passenger['PassengerId']
+        if passenger['Sex'] == 'female':
+             predictions[passenger_id] = 1
+        elif (passenger['Age'] < 15 and passenger['SibSp'] == 1 and passenger ['Embarked'] == 'S'):
+            predictions[passenger_id] = 1
+        else:
+            predictions[passenger_id] = 0
+        
+    return predictions
+	
+PROBLEM SET 2	
+
+Exercicio 1
+ q = """
+        SELECT COUNT (*) FROM weather_data WHERE cast(rain as integer) = 1
+    """
+
+
+Exercicio 2
+
+ q = """
+    SELECT fog, MAX(maxtempi) FROM weather_data GROUP BY fog
+    """
+
+Exercicio 3
+
+q = """
+        SELECT AVG(meantempi) FROM weather_data WHERE cast(strftime('%w', date) as integer) = 6 or cast (strftime('%w', date) as integer) = 0
+    """
+
+Exercicio 4
+ 
+ q = """
+    SELECT AVG(mintempi) FROM weather_data WHERE rain = '1' AND mintempi > 55
+    """
+
+Exercicio 5
+
+ for name in filenames:
+        with open (name, "r") as file_in:
+            with open('updated_' + name,"w") as file_out:
+                reader = csv.reader(file_in)
+                writer = csv.writer(file_out)
+                for line in reader:
+                    initial_columns = line[0:3]
+                    start_index = 3
+                    end_index = 8
+                    while end_index<=len(line):
+                        updated_line = initial_columns + line[start_index:end_index]
+                        writer.writerow(updated_line)
+                        start_index = end_index
+                        end_index = end_index + 5
+                        print(updated_line)
+                        
+Exercicio 6
+
+ with open(output_file, 'w') as master_file:
+        master_file.write('C/A,UNIT,SCP,DATEn,TIMEn,DESCn,ENTRIESn,EXITSn\n')
+        for filename in filenames:
+            with open (filename, 'r') as f:
+                for row in f:
+                    master_file.write(row)
+
+
+Exercicio 7
+
+    df=pandas.read_csv(filename)
+    turnstile_data = df[df['DESCn'] == 'REGULAR']
+    
+    return turnstile_data
+
+Exercicio 8
+
+ df['ENTRIESn_hourly'] = df['ENTRIESn'] - df['ENTRIESn'].shift(1)
+    df['ENTRIESn_hourly'] = df['ENTRIESn_hourly'].fillna(1)
+    return df
+
+Exercicio 9
+
+ df['EXITSn_hourly'] = df['EXITSn'] - df['EXITSn'].shift(1)
+    df['EXITSn_hourly'] = df['EXITSn_hourly'].fillna(0)
+    return df
+
+Exercicio 10
+
+    
+    hour = int(time.split(':')[0])
+    return hour
+
+Exercicio 11
+
+ time = dt.datetime.strptime(date, "%m-%d-%y")
+    date_formatted = "{:%Y-%m-%d}".format(time)
+    return date_formatted
+
+PROBLEM SET 3
+
+Exercicio 1
+
+    turnstile_weather['ENTRIESn_hourly'][turnstile_weather['rain'] == 0].hist(bins=28,range[0,6000],facecolor='blue',label='No Rain') 
+    turnstile_weather['ENTRIESn_hourly'][turnstile_weather['rain'] == 1].hist(bins=25,range[0,6000],facecolor='green',label='Rain', alpha = 0.75)
+    plt.xlabel('ENTRIESn_hourly')
+    plt.ylabel('Frequency')
+    plt.title('Histogram of ENTRIESn_hourly')
+    plt.axis([0,6000,0,45000])
+    plt.grid(True)
+    plt.legend()
+    return plt
+
+Exercicio 3
+
+ 
+    entries_without_rain = turnstile_weather["ENTRIESn_hourly"][turnstile_weather["rain"] == 0]
+    entries_witht_rain = turnstile_weather["ENTRIESn_hourly"][turnstile_weather["rain"] == 1]
+    
+    without_rain_mean = np.mean(entries_without_rain)
+    with_rain_mean = np.mean(entries_witht_rain)
+    
+    U, p = scipy.stats.mannwhitneyu(entries_without_rain, entries_witht_rain)
+    
+    return with_rain_mean, without_rain_mean, U, p # leave this line for the grader
+
+
+Exercicio 5
+
+import numpy as np
+import pandas
+from ggplot import *
+
+"""
+In this question, you need to:
+1) implement the compute_cost() and gradient_descent() procedures
+2) Select features (in the predictions procedure) and make predictions.
+
+"""
+
+def normalize_features(df):
+    """
+    Normalize the features in the data set.
+    """
+    mu = df.mean()
+    sigma = df.std()
+    
+    if (sigma == 0).any():
+        raise Exception("One or more features had the same value for all samples, and thus could " + \
+                         "not be normalized. Please do not include features with only a single value " + \
+                         "in your model.")
+    df_normalized = (df - df.mean()) / df.std()
+
+    return df_normalized, mu, sigma
+
+def compute_cost(features, values, theta):
+    """
+    Compute the cost function given a set of features / values, 
+    and the values for our thetas.
+    
+    This can be the same code as the compute_cost function in the lesson #3 exercises,
+    but feel free to implement your own.
+    """
+    
+    m = len(values)
+    sum_of_square_errors = np.square(np.dot(features,theta) - values).sum()
+    cost = sum_of_square_errors / (2*m)
+
+    return cost
+
+def gradient_descent(features, values, theta, alpha, num_iterations):
+    """
+    Perform gradient descent given a data set with an arbitrary number of features.
+    
+    This can be the same gradient descent code as in the lesson #3 exercises,
+    but feel free to implement your own.
+    """
+    
+    m = len(values)
+    cost_history = []
+
+    for i in range(num_iterations):
+       cost = compute_cost(features,values,theta)
+       cost_history.append(cost)
+       theta = theta - (alpha * (1/m) * np.dot((np.dot(features,theta)- values),features))
+       
+       
+    return theta, pandas.Series(cost_history)
+
+def predictions(dataframe):
+   
+    # Select Features (try different features!)
+    features = dataframe[['rain', 'precipi', 'Hour', 'meantempi']]
+    
+    # Add UNIT to features using dummy variables
+    dummy_units = pandas.get_dummies(dataframe['UNIT'], prefix='unit')
+    features = features.join(dummy_units)
+    
+    # Values
+    values = dataframe['ENTRIESn_hourly']
+    m = len(values)
+
+    features, mu, sigma = normalize_features(features)
+    features['ones'] = np.ones(m) # Add a column of 1s (y intercept)
+    
+    # Convert features and values to numpy arrays
+    features_array = np.array(features)
+    values_array = np.array(values)
+
+    # Set values for alpha, number of iterations.
+    alpha = 0.1 # please feel free to change this value
+    num_iterations = 75 # please feel free to change this value
+
+    # Initialize theta, perform gradient descent
+    theta_gradient_descent = np.zeros(len(features.columns))
+    theta_gradient_descent, cost_history = gradient_descent(features_array, 
+                                                            values_array, 
+                                                            theta_gradient_descent, 
+                                                            alpha, 
+                                                            num_iterations)
+    
+    plot = None
+    
+    
+    predictions = np.dot(features_array, theta_gradient_descent)
+    return predictions, plot
+
+
+def plot_cost_history(alpha, cost_history):
+   """This function is for viewing the plot of your cost history.
+   You can run it by uncommenting this
+
+       plot_cost_history(alpha, cost_history) 
+
+   call in predictions.
+   
+   If you want to run this locally, you should print the return value
+   from this function.
+   """
+   cost_df = pandas.DataFrame({
+      'Cost_History': cost_history,
+      'Iteration': range(len(cost_history))
+   })
+   return ggplot(cost_df, aes('Iteration', 'Cost_History')) + \
+      geom_point() + ggtitle('Cost History for alpha = %.3f' % alpha )
+
+
+
+
+Exercicio 6
+
+    
+    plt.figure()
+    turnstile_weather['ENTRIESn_hourly'].hist(bins=28,rage=[0,6000])
+    return plt
+
+Exercicio 7
+
+n = len(data)
+    sum_x = np.sum(data)
+    sum_y = np.sum(predictions)
+    sum_xy = np.sum(data * predictions)
+    
+    r_dividend = (n * sum_xy - (sum_x * sum_y))
+    r_divider = m.sqrt((n * np.sum(data ** 2) - sum_x ** 2) * (n* np.sum(predictions ** 2) - sum_y ** 2))
+    
+    r = r_dividend / r_divider
+    r_squared = r ** 2
+    
+    return r_squared
